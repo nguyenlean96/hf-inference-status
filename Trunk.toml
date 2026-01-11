@@ -2,8 +2,13 @@
 target = "./index.html"
 
 [watch]
-ignore = ["./src-tauri"]
+ignore = ["./src-tauri", "./dist"]
 
 [serve]
 port = 1420
 open = false
+
+[[hooks]]
+stage = "pre_build"
+command = "npx"
+command_arguments = ["@tailwindcss/cli", "-i", "./src-tauri/styles.css", "-o", "./styles.css", "--minify"]
