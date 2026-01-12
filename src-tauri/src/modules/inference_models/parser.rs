@@ -21,7 +21,7 @@ fn parse_price(price_el: ElementRef) -> Option<f64> {
         return None;
     }
 
-    let price_str = trimmed.strip_prefix("$").unwrap();
+    let price_str = trimmed.strip_prefix("$").unwrap_or(&trimmed);
     let cleaned_price_str = price_str.replace(",", "");
 
     cleaned_price_str.parse::<f64>().ok()
@@ -93,24 +93,49 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
     let structured_selector = Selector::parse("td:nth-child(9)").unwrap();
 
     for row in table_html.select(&tbody_row_selector) {
-        let model_avatar_url_el = row.select(&model_avatar_selector).next().unwrap();
+        let Some(model_avatar_url_el) = row.select(&model_avatar_selector).next() else {
+            continue;
+        };
 
-        let model_long_name_el = row.select(&model_long_name_selector).next().unwrap();
-        let model_short_name_el = row.select(&model_short_name_selector).next().unwrap();
+        let Some(model_long_name_el) = row.select(&model_long_name_selector).next() else {
+            continue;
+        };
+        let Some(model_short_name_el) = row.select(&model_short_name_selector).next() else {
+            continue;
+        };
 
-        let model_details_url_el = row.select(&model_details_url_selector).next().unwrap();
-        let model_provider_instruction_url_el = row
-            .select(&model_provider_instruction_url_selector)
-            .next()
-            .unwrap();
-        let inference_provider_name_el = row.select(&provider_name_selector).next().unwrap();
-        let input_price_el = row.select(&input_price_selector).next().unwrap();
-        let output_price_el = row.select(&output_price_selector).next().unwrap();
-        let context_window_el = row.select(&context_window_selector).next().unwrap();
-        let latency_el = row.select(&latency_selector).next().unwrap();
-        let throughput_el = row.select(&throughput_selector).next().unwrap();
-        let tools_el = row.select(&tools_selector).next().unwrap();
-        let structured_output_el = row.select(&structured_selector).next().unwrap();
+        let Some(model_details_url_el) = row.select(&model_details_url_selector).next() else {
+            continue;
+        };
+        let Some(model_provider_instruction_url_el) =
+            row.select(&model_provider_instruction_url_selector).next()
+        else {
+            continue;
+        };
+        let Some(inference_provider_name_el) = row.select(&provider_name_selector).next() else {
+            continue;
+        };
+        let Some(input_price_el) = row.select(&input_price_selector).next() else {
+            continue;
+        };
+        let Some(output_price_el) = row.select(&output_price_selector).next() else {
+            continue;
+        };
+        let Some(context_window_el) = row.select(&context_window_selector).next() else {
+            continue;
+        };
+        let Some(latency_el) = row.select(&latency_selector).next() else {
+            continue;
+        };
+        let Some(throughput_el) = row.select(&throughput_selector).next() else {
+            continue;
+        };
+        let Some(tools_el) = row.select(&tools_selector).next() else {
+            continue;
+        };
+        let Some(structured_output_el) = row.select(&structured_selector).next() else {
+            continue;
+        };
 
         data.push(InferenceModelStatusRowData {
             avatar_url: model_avatar_url_el
