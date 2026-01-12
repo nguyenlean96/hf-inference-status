@@ -182,21 +182,54 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
         });
     }
 
+    let data_size = data.len();
+    let mut avatar_urls: Vec<String> = Vec::with_capacity(data_size);
+    let mut long_names: Vec<String> = Vec::with_capacity(data_size);
+    let mut short_names: Vec<String> = Vec::with_capacity(data_size);
+    let mut model_details_urls: Vec<String> = Vec::with_capacity(data_size);
+    let mut model_inference_instruction_urls: Vec<String> = Vec::with_capacity(data_size);
+    let mut provider_names: Vec<String> = Vec::with_capacity(data_size);
+    let mut input_prices_per_1m: Vec<f64> = Vec::with_capacity(data_size);
+    let mut output_prices_per_1m: Vec<f64> = Vec::with_capacity(data_size);
+    let mut context_window_sizes: Vec<i64> = Vec::with_capacity(data_size);
+    let mut latencies: Vec<f64> = Vec::with_capacity(data_size);
+    let mut throughputs_tokens_per_sec: Vec<i64> = Vec::with_capacity(data_size);
+    let mut tools_supports: Vec<bool> = Vec::with_capacity(data_size);
+    let mut structured_output_supports: Vec<bool> = Vec::with_capacity(data_size);
+
+    // Prepare data for DataFrame
+    for row in data {
+        avatar_urls.push(row.avatar_url);
+        long_names.push(row.long_name);
+        short_names.push(row.short_name);
+        model_details_urls.push(row.model_details_url);
+        model_inference_instruction_urls.push(row.model_inference_instruction_url);
+        provider_names.push(row.provider_name);
+        input_prices_per_1m.push(row.input_price_per_1m);
+        output_prices_per_1m.push(row.output_price_per_1m);
+        context_window_sizes.push(row.context_window_size);
+        latencies.push(row.latency);
+        throughputs_tokens_per_sec.push(row.throughput_token_per_sec);
+        tools_supports.push(row.tools_support);
+        structured_output_supports.push(row.structured_output_support);
+    }
+
     let df = df!(
-        "avatar_url" => data.iter().map(|row| row.avatar_url.clone()).collect::<Vec<_>>(),
-        "long_name" => data.iter().map(|row| row.long_name.clone()).collect::<Vec<_>>(),
-        "short_name" => data.iter().map(|row| row.short_name.clone()).collect::<Vec<_>>(),
-        "model_details_url" => data.iter().map(|row| row.model_details_url.clone()).collect::<Vec<_>>(),
-        "model_inference_instruction_url" => data.iter().map(|row| row.model_inference_instruction_url.clone()).collect::<Vec<_>>(),
-        "provider_name" => data.iter().map(|row| row.provider_name.clone()).collect::<Vec<_>>(),
-        "input_price_per_1m" => data.iter().map(|row| row.input_price_per_1m).collect::<Vec<_>>(),
-        "output_price_per_1m" => data.iter().map(|row| row.output_price_per_1m).collect::<Vec<_>>(),
-        "context_window_size" => data.iter().map(|row| row.context_window_size).collect::<Vec<_>>(),
-        "latency" => data.iter().map(|row| row.latency).collect::<Vec<_>>(),
-        "throughput_token_per_sec" => data.iter().map(|row| row.throughput_token_per_sec).collect::<Vec<_>>(),
-        "tools_support" => data.iter().map(|row| row.tools_support).collect::<Vec<_>>(),
-        "structured_output_support" => data.iter().map(|row| row.structured_output_support).collect::<Vec<_>>(),
-    ).unwrap();
+        "avatar_url" => avatar_urls,
+        "long_name" => long_names,
+        "short_name" => short_names,
+        "model_details_url" => model_details_urls,
+        "model_inference_instruction_url" => model_inference_instruction_urls,
+        "provider_name" => provider_names,
+        "input_price_per_1m" => input_prices_per_1m,
+        "output_price_per_1m" => output_prices_per_1m,
+        "context_window_size" => context_window_sizes,
+        "latency" => latencies,
+        "throughput_token_per_sec" => throughputs_tokens_per_sec,
+        "tools_support" => tools_supports,
+        "structured_output_support" => structured_output_supports,
+    )
+    .unwrap();
 
     Ok(df)
 }
