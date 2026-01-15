@@ -52,7 +52,7 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
     let data_size = table_rows.clone().count();
 
     let mut avatar_urls: Vec<String> = Vec::with_capacity(data_size);
-    let mut long_names: Vec<String> = Vec::with_capacity(data_size);
+    let mut model_families: Vec<Option<String>> = Vec::with_capacity(data_size);
     let mut short_names: Vec<String> = Vec::with_capacity(data_size);
     let mut model_details_urls: Vec<String> = Vec::with_capacity(data_size);
     let mut model_inference_instruction_urls: Vec<String> = Vec::with_capacity(data_size);
@@ -115,21 +115,40 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
                 .unwrap_or_default()
                 .to_string(),
         );
-        long_names.push(
-            model_long_name_el
-                .text()
-                .collect::<Vec<_>>()
-                .join(" ")
-                .trim()
-                .to_string(),
-        );
+        let long_name_text = model_long_name_el
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .trim()
+            .to_string();
+        let short_name_text = model_short_name_el
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .trim()
+            .to_string();
+        // Split long_name using the slash "/" where:
+        // - Has 2 parts: first part is model_family, second part is the name
+        // - Has 1 part: model_family is None, name is the only part
+        let name_parts: Vec<&str> = long_name_text.splitn(2, '/').map(|s| s.trim()).collect();
+        if name_parts.len() == 2 {
+            model_families.push(Some(name_parts[0].to_string()));
+        } else {
+            model_families.push(None);
+        }
         short_names.push(
-            model_short_name_el
-                .text()
-                .collect::<Vec<_>>()
-                .join(" ")
-                .trim()
-                .to_string(),
+            if name_parts.len() == 2
+                && name_parts.last().is_some()
+                && let Some(last_part) = name_parts.last()
+            {
+                if !last_part.is_empty() {
+                    last_part.to_string()
+                } else {
+                    short_name_text
+                }
+            } else {
+                short_name_text
+            },
         );
         model_details_urls.push(
             model_details_url_el
@@ -165,7 +184,7 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
 
     let df = df!(
         "avatar_url" => avatar_urls,
-        "long_name" => long_names,
+        "model_family" => model_families,
         "short_name" => short_names,
         "model_details_url" => model_details_urls,
         "model_inference_instruction_url" => model_inference_instruction_urls,
