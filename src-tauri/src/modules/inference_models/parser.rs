@@ -57,11 +57,11 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
     let mut model_details_urls: Vec<String> = Vec::with_capacity(data_size);
     let mut model_inference_instruction_urls: Vec<String> = Vec::with_capacity(data_size);
     let mut provider_names: Vec<String> = Vec::with_capacity(data_size);
-    let mut input_prices_per_1m: Vec<f64> = Vec::with_capacity(data_size);
-    let mut output_prices_per_1m: Vec<f64> = Vec::with_capacity(data_size);
-    let mut context_window_sizes: Vec<i64> = Vec::with_capacity(data_size);
-    let mut latencies: Vec<f64> = Vec::with_capacity(data_size);
-    let mut throughputs_tokens_per_sec: Vec<i64> = Vec::with_capacity(data_size);
+    let mut input_prices_per_1m: Vec<Option<f64>> = Vec::with_capacity(data_size);
+    let mut output_prices_per_1m: Vec<Option<f64>> = Vec::with_capacity(data_size);
+    let mut context_window_sizes: Vec<Option<i64>> = Vec::with_capacity(data_size);
+    let mut latencies: Vec<Option<f64>> = Vec::with_capacity(data_size);
+    let mut throughputs_tokens_per_sec: Vec<Option<i64>> = Vec::with_capacity(data_size);
     let mut tools_supports: Vec<bool> = Vec::with_capacity(data_size);
     let mut structured_output_supports: Vec<bool> = Vec::with_capacity(data_size);
 
@@ -151,11 +151,11 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
                 .trim()
                 .to_string(),
         );
-        input_prices_per_1m.push(parse_price(input_price_el).unwrap_or(-1.0));
-        output_prices_per_1m.push(parse_price(output_price_el).unwrap_or(-1.0));
-        context_window_sizes.push(parse_number::<i64>(context_window_el).unwrap_or(-1));
-        latencies.push(parse_number::<f64>(latency_el).unwrap_or(-1.0));
-        throughputs_tokens_per_sec.push(parse_number::<i64>(throughput_el).unwrap_or(-1));
+        input_prices_per_1m.push(parse_price(input_price_el));
+        output_prices_per_1m.push(parse_price(output_price_el));
+        context_window_sizes.push(parse_number::<i64>(context_window_el));
+        latencies.push(parse_number::<f64>(latency_el));
+        throughputs_tokens_per_sec.push(parse_number::<i64>(throughput_el));
         tools_supports.push(matches!(tools_el.text().collect::<String>().trim(), "Yes"));
         structured_output_supports.push(matches!(
             structured_output_el.text().collect::<String>().trim(),
