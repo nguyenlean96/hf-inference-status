@@ -138,7 +138,6 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
         }
         short_names.push(
             if name_parts.len() == 2
-                && name_parts.last().is_some()
                 && let Some(last_part) = name_parts.last()
             {
                 if !last_part.is_empty() {
