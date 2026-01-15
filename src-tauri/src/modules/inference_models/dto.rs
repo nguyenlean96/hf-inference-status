@@ -58,7 +58,13 @@ impl From<&DataFrame> for InferenceModelStatusResponse {
         for i in 0..len {
             results.push(InferenceModelStatusRowData {
                 avatar_url: avatar_urls.get(i).unwrap_or_default().to_string(),
-                model_family: Some(model_families.get(i).unwrap_or_default().to_string()),
+                model_family: model_families.get(i).and_then(|s| {
+                    if s.is_empty() {
+                        None
+                    } else {
+                        Some(s.to_string())
+                    }
+                }),
                 short_name: short_names.get(i).unwrap_or_default().to_string(),
                 model_details_url: model_details_urls.get(i).unwrap_or_default().to_string(),
                 model_inference_instruction_url: model_inference_urls
