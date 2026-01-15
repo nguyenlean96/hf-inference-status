@@ -4,6 +4,7 @@ use leptos::task::spawn_local;
 use reactive_stores::Store;
 
 use super::list::ModelInferenceStatusList;
+use super::tool_bar::{InferenceStatusToolBar, ToolBarAction};
 use crate::states::model_inference_state::{
     ModelInferenceServiceState, ModelInferenceServiceStateExt,
 };
@@ -20,15 +21,10 @@ pub fn ModelInferenceStatus() -> impl IntoView {
             model_inference_state.get_data().await;
         });
     };
-
     view! {
         <div class="flex flex-col max-h-full min-h-full">
-            <div class="px-2 p-1 flex items-center justify-between">
-                <h1 class="text-xl text-[#ccc]">
-                    "Inference models status"
-                </h1>
-
-                <div class="flex items-center gap-1">
+            <InferenceStatusToolBar>
+                <ToolBarAction slot:tool_bar_actions_slot>
                     <button
                         class="p-1.5 flex items-center gap-0.5 \
                         text-yellow-600 \
@@ -47,6 +43,8 @@ pub fn ModelInferenceStatus() -> impl IntoView {
                         </svg>
                         <span class="block leading-none text-sm">"Favorite"</span>
                     </button>
+                </ToolBarAction>
+                <ToolBarAction slot:tool_bar_actions_slot>
                     <button
                         class="p-1.5 flex items-center gap-0.5 \
                         text-[#aaa] hover:text-white 
@@ -61,6 +59,8 @@ pub fn ModelInferenceStatus() -> impl IntoView {
                             <path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z"/>
                         </svg>
                     </button>
+                </ToolBarAction>
+                <ToolBarAction slot:tool_bar_actions_slot>
                     <button
                         class="p-1.5 flex items-center gap-0.5 \
                         text-[#aaa] hover:text-white 
@@ -81,8 +81,8 @@ pub fn ModelInferenceStatus() -> impl IntoView {
                             <path d="M16 16h5v5"/>
                         </svg>
                     </button>
-                </div>
-            </div>
+                </ToolBarAction>
+            </InferenceStatusToolBar>
             <div class="relative flex-1 \
                 max-h-full min-h-full max-w-full \
                 overflow-auto">
