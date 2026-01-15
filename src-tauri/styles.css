@@ -16,6 +16,14 @@
   -webkit-text-size-adjust: 100%;
 }
 
+* {
+  line-height: 1em;
+}
+
+body {
+  position: relative;
+}
+
 button {
   cursor: pointer;
 }
@@ -23,4 +31,13 @@ button {
 input,
 button {
   outline: none;
+}
+
+td {
+  padding: 4px 6px;
+}
+
+.inference_models_status th {
+  text-align: left;
+  padding: 8px 6px;
 }
