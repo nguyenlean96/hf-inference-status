@@ -7,7 +7,8 @@
   font-weight: 400;
 
   color: #fff;
-  background-color: rgb(11, 15, 25);
+  /* This equates to tailwind: bg-gray-900 */
+  background-color: rgb(3, 7, 18);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,6 +23,9 @@
 
 body {
   position: relative;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 button {
@@ -33,7 +37,7 @@ button {
   outline: none;
 }
 
-td {
+td, th {
   padding: 4px 6px;
 }
 
