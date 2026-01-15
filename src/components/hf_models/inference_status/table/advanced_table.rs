@@ -22,7 +22,7 @@ pub fn AdvancedTable(
 ) -> impl IntoView {
     view! {
         <div>
-            <table>
+            <table class="text-xs">
                 <thead>
                     <tr class="sticky top-0 z-2 bg-gray-950">
                         {
