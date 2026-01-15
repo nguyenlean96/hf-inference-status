@@ -5,6 +5,7 @@ use crate::commands::prelude::*;
 use crate::states::prelude::*;
 
 pub mod commands;
+pub mod models;
 pub mod modules;
 pub mod states;
 
