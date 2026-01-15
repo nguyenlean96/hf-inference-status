@@ -3,7 +3,10 @@ use std::time::Duration;
 
 /// Hook to wrap the underlying `setInterval` call and make it reactive w.r.t.
 /// possible changes of the timer interval.
-pub fn use_interval<T, F>(interval_millis: T, f: F) -> impl Fn() + Clone
+pub fn use_interval<T, F>(
+    interval_millis: T,
+    f: F,
+) -> (ReadSignal<bool>, impl Fn() + Clone, impl Fn() + Clone)
 where
     F: Fn() + Clone + 'static,
     T: Into<Signal<u64>> + 'static,
@@ -35,5 +38,9 @@ where
         }
     });
 
-    move || set_active.set(false)
+    (
+        active,
+        move || set_active.set(true),
+        move || set_active.set(false),
+    )
 }
