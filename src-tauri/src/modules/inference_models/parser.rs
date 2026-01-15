@@ -52,16 +52,16 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
     let data_size = table_rows.clone().count();
 
     let mut avatar_urls: Vec<String> = Vec::with_capacity(data_size);
-    let mut long_names: Vec<String> = Vec::with_capacity(data_size);
+    let mut model_families: Vec<Option<String>> = Vec::with_capacity(data_size);
     let mut short_names: Vec<String> = Vec::with_capacity(data_size);
     let mut model_details_urls: Vec<String> = Vec::with_capacity(data_size);
     let mut model_inference_instruction_urls: Vec<String> = Vec::with_capacity(data_size);
     let mut provider_names: Vec<String> = Vec::with_capacity(data_size);
-    let mut input_prices_per_1m: Vec<f64> = Vec::with_capacity(data_size);
-    let mut output_prices_per_1m: Vec<f64> = Vec::with_capacity(data_size);
-    let mut context_window_sizes: Vec<i64> = Vec::with_capacity(data_size);
-    let mut latencies: Vec<f64> = Vec::with_capacity(data_size);
-    let mut throughputs_tokens_per_sec: Vec<i64> = Vec::with_capacity(data_size);
+    let mut input_prices_per_1m: Vec<Option<f64>> = Vec::with_capacity(data_size);
+    let mut output_prices_per_1m: Vec<Option<f64>> = Vec::with_capacity(data_size);
+    let mut context_window_sizes: Vec<Option<i64>> = Vec::with_capacity(data_size);
+    let mut latencies: Vec<Option<f64>> = Vec::with_capacity(data_size);
+    let mut throughputs_tokens_per_sec: Vec<Option<i64>> = Vec::with_capacity(data_size);
     let mut tools_supports: Vec<bool> = Vec::with_capacity(data_size);
     let mut structured_output_supports: Vec<bool> = Vec::with_capacity(data_size);
 
@@ -115,21 +115,39 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
                 .unwrap_or_default()
                 .to_string(),
         );
-        long_names.push(
-            model_long_name_el
-                .text()
-                .collect::<Vec<_>>()
-                .join(" ")
-                .trim()
-                .to_string(),
-        );
+        let long_name_text = model_long_name_el
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .trim()
+            .to_string();
+        let short_name_text = model_short_name_el
+            .text()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .trim()
+            .to_string();
+        // Split long_name using the slash "/" where:
+        // - Has 2 parts: first part is model_family, second part is the name
+        // - Has 1 part: model_family is None, name is the only part
+        let name_parts: Vec<&str> = long_name_text.splitn(2, '/').map(|s| s.trim()).collect();
+        if name_parts.len() == 2 {
+            model_families.push(Some(name_parts[0].to_string()));
+        } else {
+            model_families.push(None);
+        }
         short_names.push(
-            model_short_name_el
-                .text()
-                .collect::<Vec<_>>()
-                .join(" ")
-                .trim()
-                .to_string(),
+            if name_parts.len() == 2
+                && let Some(last_part) = name_parts.last()
+            {
+                if !last_part.is_empty() {
+                    last_part.to_string()
+                } else {
+                    short_name_text
+                }
+            } else {
+                short_name_text
+            },
         );
         model_details_urls.push(
             model_details_url_el
@@ -151,11 +169,11 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
                 .trim()
                 .to_string(),
         );
-        input_prices_per_1m.push(parse_price(input_price_el).unwrap_or(-1.0));
-        output_prices_per_1m.push(parse_price(output_price_el).unwrap_or(-1.0));
-        context_window_sizes.push(parse_number::<i64>(context_window_el).unwrap_or(-1));
-        latencies.push(parse_number::<f64>(latency_el).unwrap_or(-1.0));
-        throughputs_tokens_per_sec.push(parse_number::<i64>(throughput_el).unwrap_or(-1));
+        input_prices_per_1m.push(parse_price(input_price_el));
+        output_prices_per_1m.push(parse_price(output_price_el));
+        context_window_sizes.push(parse_number::<i64>(context_window_el));
+        latencies.push(parse_number::<f64>(latency_el));
+        throughputs_tokens_per_sec.push(parse_number::<i64>(throughput_el));
         tools_supports.push(matches!(tools_el.text().collect::<String>().trim(), "Yes"));
         structured_output_supports.push(matches!(
             structured_output_el.text().collect::<String>().trim(),
@@ -165,7 +183,7 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
 
     let df = df!(
         "avatar_url" => avatar_urls,
-        "long_name" => long_names,
+        "model_family" => model_families,
         "short_name" => short_names,
         "model_details_url" => model_details_urls,
         "model_inference_instruction_url" => model_inference_instruction_urls,

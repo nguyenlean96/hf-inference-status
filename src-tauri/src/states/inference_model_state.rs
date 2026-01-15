@@ -1,6 +1,10 @@
 use chrono::{Local, NaiveDateTime};
 use polars::prelude::*;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
+
+use crate::modules::inference_models::{
+    fetch::fetch_data, parser::html_table_to_df, utils::select_html_data_table,
+};
 
 #[derive(Debug, Default)]
 pub struct InferenceModelStateInner {
@@ -14,9 +18,18 @@ impl InferenceModelStateInner {
         Self::default()
     }
 
-    pub fn update(&mut self, data: DataFrame) {
-        self.data = Some(data);
-        self.updated_at = Some(Local::now().naive_local());
+    pub async fn update(&mut self) {
+        self.is_loading = true;
+
+        if let Ok(response) = fetch_data().await {
+            if let Some(data_table) = select_html_data_table(response) {
+                if let Ok(df) = html_table_to_df(data_table) {
+                    self.data = Some(df);
+                    self.updated_at = Some(Local::now().naive_local());
+                }
+            }
+        }
+        self.is_loading = false;
     }
 }
 

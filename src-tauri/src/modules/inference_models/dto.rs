@@ -4,16 +4,16 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceModelStatusRowData {
     pub avatar_url: String,
-    pub long_name: String,
+    pub model_family: Option<String>,
     pub short_name: String,
     pub model_details_url: String,
     pub model_inference_instruction_url: String,
     pub provider_name: String,
-    pub input_price_per_1m: f64,
-    pub output_price_per_1m: f64,
-    pub context_window_size: i64,
-    pub latency: f64,
-    pub throughput_token_per_sec: i64,
+    pub input_price_per_1m: Option<f64>,
+    pub output_price_per_1m: Option<f64>,
+    pub context_window_size: Option<i64>,
+    pub latency: Option<f64>,
+    pub throughput_token_per_sec: Option<i64>,
     pub tools_support: bool,
     pub structured_output_support: bool,
 }
@@ -30,7 +30,7 @@ impl From<&DataFrame> for InferenceModelStatusResponse {
 
         // Get column references once
         let avatar_urls = df.column("avatar_url").unwrap().str().unwrap();
-        let long_names = df.column("long_name").unwrap().str().unwrap();
+        let model_families = df.column("model_family").unwrap().str().unwrap();
         let short_names = df.column("short_name").unwrap().str().unwrap();
         let model_details_urls = df.column("model_details_url").unwrap().str().unwrap();
         let model_inference_urls = df
@@ -58,7 +58,13 @@ impl From<&DataFrame> for InferenceModelStatusResponse {
         for i in 0..len {
             results.push(InferenceModelStatusRowData {
                 avatar_url: avatar_urls.get(i).unwrap_or_default().to_string(),
-                long_name: long_names.get(i).unwrap_or_default().to_string(),
+                model_family: model_families.get(i).and_then(|s| {
+                    if s.is_empty() {
+                        None
+                    } else {
+                        Some(s.to_string())
+                    }
+                }),
                 short_name: short_names.get(i).unwrap_or_default().to_string(),
                 model_details_url: model_details_urls.get(i).unwrap_or_default().to_string(),
                 model_inference_instruction_url: model_inference_urls
@@ -66,11 +72,11 @@ impl From<&DataFrame> for InferenceModelStatusResponse {
                     .unwrap_or_default()
                     .to_string(),
                 provider_name: provider_names.get(i).unwrap_or_default().to_string(),
-                input_price_per_1m: input_prices.get(i).unwrap_or(-1.0),
-                output_price_per_1m: output_prices.get(i).unwrap_or(-1.0),
-                context_window_size: context_sizes.get(i).unwrap_or(-1),
-                latency: latencies.get(i).unwrap_or(-1.0),
-                throughput_token_per_sec: throughputs.get(i).unwrap_or(-1),
+                input_price_per_1m: input_prices.get(i),
+                output_price_per_1m: output_prices.get(i),
+                context_window_size: context_sizes.get(i),
+                latency: latencies.get(i),
+                throughput_token_per_sec: throughputs.get(i),
                 tools_support: tools.get(i).unwrap_or(false),
                 structured_output_support: structured.get(i).unwrap_or(false),
             });
