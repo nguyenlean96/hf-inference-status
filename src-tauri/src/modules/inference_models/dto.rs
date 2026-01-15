@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceModelStatusRowData {
     pub avatar_url: String,
-    pub long_name: String,
+    pub model_family: Option<String>,
     pub short_name: String,
     pub model_details_url: String,
     pub model_inference_instruction_url: String,
@@ -30,7 +30,7 @@ impl From<&DataFrame> for InferenceModelStatusResponse {
 
         // Get column references once
         let avatar_urls = df.column("avatar_url").unwrap().str().unwrap();
-        let long_names = df.column("long_name").unwrap().str().unwrap();
+        let model_families = df.column("model_family").unwrap().str().unwrap();
         let short_names = df.column("short_name").unwrap().str().unwrap();
         let model_details_urls = df.column("model_details_url").unwrap().str().unwrap();
         let model_inference_urls = df
@@ -58,7 +58,7 @@ impl From<&DataFrame> for InferenceModelStatusResponse {
         for i in 0..len {
             results.push(InferenceModelStatusRowData {
                 avatar_url: avatar_urls.get(i).unwrap_or_default().to_string(),
-                long_name: long_names.get(i).unwrap_or_default().to_string(),
+                model_family: Some(model_families.get(i).unwrap_or_default().to_string()),
                 short_name: short_names.get(i).unwrap_or_default().to_string(),
                 model_details_url: model_details_urls.get(i).unwrap_or_default().to_string(),
                 model_inference_instruction_url: model_inference_urls
