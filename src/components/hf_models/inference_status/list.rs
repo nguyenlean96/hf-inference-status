@@ -1,16 +1,30 @@
 use leptos::prelude::*;
+use leptos::task::spawn_local;
 use reactive_stores::Store;
 
 use crate::components::hf_models::inference_status::table::prelude::*;
-use crate::states::model_inference_state::{
-    ModelInferenceServiceState, ModelInferenceServiceStateExt,
-    ModelInferenceServiceStateStoreFields,
-};
+use crate::states::prelude::*;
+use crate::types::inference_model_status::InferenceModelStatusRowData;
 
 #[component]
 pub fn ModelInferenceStatusList() -> impl IntoView {
     let model_inference_state = expect_context::<Store<ModelInferenceServiceState>>();
+    let favorite_inference_service_state = expect_context::<Store<FavoriteInferenceServiceState>>();
     let is_loading = Memo::new(move |_| model_inference_state.is_loading());
+
+    favorite_inference_service_state.get_favorite_model_inference_ids();
+
+    Effect::new(move |_| {
+        if favorite_inference_service_state.show_favorite_only().get() {
+            spawn_local(async move {
+                model_inference_state.get_data(true).await;
+            });
+        } else {
+            spawn_local(async move {
+                model_inference_state.get_data(false).await;
+            });
+        }
+    });
 
     view! {
         <div class="pb-4">
@@ -42,7 +56,7 @@ pub fn ModelInferenceStatusList() -> impl IntoView {
                     <Tbody slot>
                         <For
                             each=move || model_inference_state.data().get()
-                            key=|item| item.short_name.clone()
+                            key=|item: &InferenceModelStatusRowData| item.id.clone()
                             let(item)
                         >
                             <TableRow item=item />
