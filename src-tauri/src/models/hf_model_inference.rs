@@ -1,7 +1,51 @@
 use serde::{Deserialize, Serialize};
 
+fn build_raw_id(row_data: &HFModelInferenceStatusRowData) -> String {
+    format!(
+        "{}:{}:{}",
+        row_data
+            .model_family
+            .as_deref()
+            .unwrap_or("unknown")
+            .to_lowercase(),
+        row_data.short_name.to_lowercase(),
+        row_data.provider_name.to_lowercase()
+    )
+}
+
+fn hash_id(raw_id: &str) -> String {
+    blake3::hash(raw_id.as_bytes()).to_hex().to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HFModelInferenceStatus {
+    /// Composite ID (Family + Name + Provider)
+    pub raw_id: String,
+
+    /// Hash of the composite ID
+    pub id: String,
+
+    #[serde(flatten)]
+    pub row_data: HFModelInferenceStatusRowData,
+}
+
+impl From<HFModelInferenceStatusRowData> for HFModelInferenceStatus {
+    fn from(row_data: HFModelInferenceStatusRowData) -> Self {
+        let raw_id = build_raw_id(&row_data);
+
+        let id = hash_id(&raw_id);
+
+        Self {
+            raw_id,
+            id,
+            row_data,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HFModelInferenceStatusRowData {
+    pub id: String,
     pub avatar_url: String,
     pub model_family: Option<String>,
     pub short_name: String,
