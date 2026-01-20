@@ -37,7 +37,7 @@ pub trait ModelInferenceServiceStateExt {
     fn is_loading(&self) -> bool;
     fn is_initialized(&self) -> bool;
     fn has_error(&self) -> Option<String>;
-    async fn get_data(&self);
+    async fn get_data(&self, favorites_only: bool);
 }
 
 impl ModelInferenceServiceStateExt for Store<ModelInferenceServiceState> {
@@ -56,13 +56,22 @@ impl ModelInferenceServiceStateExt for Store<ModelInferenceServiceState> {
         }
     }
 
-    async fn get_data(&self) {
-        if self.is_initialized() {
+    async fn get_data(&self, favorites_only: bool) {
+        if self.initialized().get() == InitStatus::Loading {
             return;
         }
 
         self.initialized().set(InitStatus::Loading);
-        match tauri_invoke::<Vec<InferenceModelStatusRowData>>("get_data", ()).await {
+        match tauri_invoke::<Vec<InferenceModelStatusRowData>>(
+            if favorites_only {
+                "get_favorite_model_inference_data"
+            } else {
+                "get_data"
+            },
+            (),
+        )
+        .await
+        {
             Ok(data) => {
                 self.data().set(data);
                 self.initialized().set(InitStatus::Initialized);
