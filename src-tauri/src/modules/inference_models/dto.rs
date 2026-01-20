@@ -1,34 +1,21 @@
 use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InferenceModelStatusRowData {
-    pub avatar_url: String,
-    pub model_family: Option<String>,
-    pub short_name: String,
-    pub model_details_url: String,
-    pub model_inference_instruction_url: String,
-    pub provider_name: String,
-    pub input_price_per_1m: Option<f64>,
-    pub output_price_per_1m: Option<f64>,
-    pub context_window_size: Option<i64>,
-    pub latency: Option<f64>,
-    pub throughput_token_per_sec: Option<i64>,
-    pub tools_support: bool,
-    pub structured_output_support: bool,
+use crate::models::hf_model_inference::HFModelInferenceStatusRowData;
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct InferenceModelStatusCollection {
+    pub data: Vec<HFModelInferenceStatusRowData>,
 }
 
-pub struct InferenceModelStatusResponse {
-    pub data: Vec<InferenceModelStatusRowData>,
-}
-
-impl From<&DataFrame> for InferenceModelStatusResponse {
+impl From<&DataFrame> for InferenceModelStatusCollection {
     fn from(df: &DataFrame) -> Self {
         let len = df.height();
 
-        let mut results: Vec<InferenceModelStatusRowData> = Vec::with_capacity(len);
+        let mut results: Vec<HFModelInferenceStatusRowData> = Vec::with_capacity(len);
 
         // Get column references once
+        let ids = df.column("id").unwrap().str().unwrap();
         let avatar_urls = df.column("avatar_url").unwrap().str().unwrap();
         let model_families = df.column("model_family").unwrap().str().unwrap();
         let short_names = df.column("short_name").unwrap().str().unwrap();
@@ -56,7 +43,8 @@ impl From<&DataFrame> for InferenceModelStatusResponse {
             .unwrap();
 
         for i in 0..len {
-            results.push(InferenceModelStatusRowData {
+            results.push(HFModelInferenceStatusRowData {
+                id: ids.get(i).unwrap_or_default().to_string(),
                 avatar_url: avatar_urls.get(i).unwrap_or_default().to_string(),
                 model_family: model_families.get(i).and_then(|s| {
                     if s.is_empty() {

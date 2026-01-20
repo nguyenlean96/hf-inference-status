@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct InferenceModelStatusRowData {
+    /// Hash of the composite ID
+    pub id: String,
+
     pub avatar_url: String,
     pub model_family: Option<String>,
     pub short_name: String,

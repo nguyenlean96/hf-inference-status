@@ -181,7 +181,27 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
         ));
     }
 
+    // Generate hashed id for each row
+    let mut raw_ids: Vec<String> = Vec::with_capacity(data_size);
+    for i in 0..data_size {
+        raw_ids.push(format!(
+            "{}:{}:{}",
+            model_families[i]
+                .as_deref()
+                .unwrap_or("unknown")
+                .to_lowercase(),
+            short_names[i].to_lowercase(),
+            provider_names[i].to_lowercase(),
+        ));
+    }
+
+    let mut ids: Vec<String> = Vec::with_capacity(data_size);
+    for i in 0..data_size {
+        ids.push(blake3::hash(raw_ids[i].as_bytes()).to_hex().to_string());
+    }
+
     let df = df!(
+        "id" => ids,
         "avatar_url" => avatar_urls,
         "model_family" => model_families,
         "short_name" => short_names,

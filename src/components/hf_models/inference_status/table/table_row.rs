@@ -1,10 +1,28 @@
+use leptos::ev::MouseEvent;
 use leptos::prelude::*;
+use reactive_stores::Store;
 
+use crate::states::prelude::*;
 use crate::types::inference_model_status::InferenceModelStatusRowData;
 use crate::utils::formatter::format_with_commas;
 
 #[component]
 pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
+    let favorite_inference_service_state = expect_context::<Store<FavoriteInferenceServiceState>>();
+    let item_clone = StoredValue::new(item.clone());
+    let is_favorite =
+        Memo::new(move |_| favorite_inference_service_state.is_favorite(item.id.clone().as_str()));
+
+    let toggle_favorite = move |e: MouseEvent| {
+        e.prevent_default();
+
+        if is_favorite.get() {
+            favorite_inference_service_state.remove_favorite(item_clone.get_value().id);
+        } else {
+            favorite_inference_service_state.add_favorite(item_clone.get_value().id);
+        }
+    };
+
     view! {
         <tr>
             <td>
@@ -16,17 +34,11 @@ pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
                             class="size-4 rounded-md"
                         />
                         <span class="block text-nowrap leading-none">
-                            {move || {
-                                let model_family = StoredValue::new(item.model_family.clone());
-
-                                view! {
-                                    <Show when=move || { model_family.get_value().is_some() }>
-                                        <span>
-                                            {model_family.get_value().unwrap_or_default()}"/"
-                                        </span>
-                                    </Show>
-                                }
-                            }}
+                            {
+                                item.model_family.clone().map(|family| view! {
+                                    <span>{family}"/"</span>
+                                })
+                            }
                             <span>
                                 {item.short_name}
                             </span>
@@ -68,12 +80,22 @@ pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
                             </svg>
                         </a>
                         <button
-                            class="block bg-yellow-500/30 rounded p-0.5"
+                            class="block rounded p-0.5"
+                            on:click=toggle_favorite
+                            style:background-color=move || {
+                                format!("rgba(239, 177, 0, {})", if is_favorite.get() { 1.0 } else { 0.3 })
+                            }
                         >
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 24 24"
                                 fill="none"
-                                stroke="#aaa"
+                                stroke=move || {
+                                    if is_favorite.get() {
+                                        "white"
+                                    } else {
+                                        "#aaa"
+                                    }
+                                }
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -129,12 +151,10 @@ pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
                 <span>{item.throughput_token_per_sec}</span>
             </td>
             <td class="text-center"
-                style:background-color=move || {
-                    if item.tools_support {
-                        "rgba(124, 207, 0, 0.2)"
-                    } else {
-                        "rgba(194, 150, 83, 0.3)"
-                    }
+                style:background-color=if item.tools_support {
+                    "rgba(124, 207, 0, 0.2)"
+                } else {
+                    "rgba(194, 150, 83, 0.3)"
                 }
             >
                 <Show when=move || { item.tools_support }
@@ -144,12 +164,10 @@ pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
                 </Show>
             </td>
             <td class="text-center"
-                style:background-color=move || {
-                    if item.structured_output_support {
-                        "rgba(124, 207, 0, 0.2)"
-                    } else {
-                        "rgba(194, 150, 83, 0.3)"
-                    }
+                style:background-color=if item.structured_output_support {
+                    "rgba(124, 207, 0, 0.2)"
+                } else {
+                    "rgba(194, 150, 83, 0.3)"
                 }
             >
                 <Show when=move || { item.structured_output_support }
