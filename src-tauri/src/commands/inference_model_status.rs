@@ -1,13 +1,14 @@
 use polars::prelude::*;
 use tauri::State;
 
+use crate::models::hf_model_inference::HFModelInferenceStatusRowData;
 use crate::modules::inference_models::prelude::*;
 use crate::states::prelude::InferenceModelState;
 
 #[tauri::command]
 pub async fn get_data(
     state: State<'_, InferenceModelState>,
-) -> Result<Vec<InferenceModelStatusRowData>, String> {
+) -> Result<Vec<HFModelInferenceStatusRowData>, String> {
     let state_lock = state.lock().await;
     if let Some(df) = &state_lock.data {
         // Sort the following columns:
@@ -22,7 +23,8 @@ pub async fn get_data(
             )
             .map_err(|e| e.to_string())?;
 
-        let response: InferenceModelStatusResponse = InferenceModelStatusResponse::from(&sorted_df);
+        let response: InferenceModelStatusCollection =
+            InferenceModelStatusCollection::from(&sorted_df);
         Ok(response.data)
     } else {
         Ok(vec![])
