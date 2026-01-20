@@ -1,22 +1,21 @@
 use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
 
-use crate::models::hf_model_inference::HFModelInferenceStatus;
+use crate::models::hf_model_inference::HFModelInferenceStatusRowData;
 
-pub type InferenceModelStatusRowData = HFModelInferenceStatus;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InferenceModelStatusResponse {
-    pub data: Vec<InferenceModelStatusRowData>,
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct InferenceModelStatusCollection {
+    pub data: Vec<HFModelInferenceStatusRowData>,
 }
 
-impl From<&DataFrame> for InferenceModelStatusResponse {
+impl From<&DataFrame> for InferenceModelStatusCollection {
     fn from(df: &DataFrame) -> Self {
         let len = df.height();
 
-        let mut results: Vec<InferenceModelStatusRowData> = Vec::with_capacity(len);
+        let mut results: Vec<HFModelInferenceStatusRowData> = Vec::with_capacity(len);
 
         // Get column references once
+        let ids = df.column("id").unwrap().str().unwrap();
         let avatar_urls = df.column("avatar_url").unwrap().str().unwrap();
         let model_families = df.column("model_family").unwrap().str().unwrap();
         let short_names = df.column("short_name").unwrap().str().unwrap();
@@ -44,7 +43,8 @@ impl From<&DataFrame> for InferenceModelStatusResponse {
             .unwrap();
 
         for i in 0..len {
-            results.push(InferenceModelStatusRowData {
+            results.push(HFModelInferenceStatusRowData {
+                id: ids.get(i).unwrap_or_default().to_string(),
                 avatar_url: avatar_urls.get(i).unwrap_or_default().to_string(),
                 model_family: model_families.get(i).and_then(|s| {
                     if s.is_empty() {
