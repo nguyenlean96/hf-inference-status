@@ -17,7 +17,6 @@ impl UserFavoriteStateInner {
 
     pub fn add_favorite(&mut self, id: &str) {
         self.fav_ids.push(id.to_string());
-        println!("Adding: {}\nCurrent favorites: {:?}", id, self.fav_ids);
     }
 
     pub fn is_favorite(&self, id: &str) -> bool {
@@ -26,7 +25,6 @@ impl UserFavoriteStateInner {
 
     pub fn remove_favorite(&mut self, id: &str) {
         self.fav_ids.retain(|x| x != id);
-        println!("Removing: {}\nCurrent favorites: {:?}", id, self.fav_ids);
     }
 
     pub async fn get_favorite_ids(&self) -> Vec<String> {
