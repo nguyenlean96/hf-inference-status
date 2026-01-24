@@ -7,6 +7,8 @@ use super::types::SortOrder;
 pub struct CustomHeader {
     #[prop(default=SortOrder::Ascending)]
     pub sort_order: SortOrder,
+    #[prop(default = 1)]
+    pub col_span: u32,
     pub children: ChildrenFn,
 }
 
@@ -22,7 +24,7 @@ pub fn AdvancedTable(
 ) -> impl IntoView {
     view! {
         <div>
-            <table class="text-xs">
+            <table class="">
                 <thead>
                     <tr class="sticky top-0 z-2 bg-gray-950">
                         {
@@ -31,7 +33,7 @@ pub fn AdvancedTable(
                             .map(|ch| {
                                 let children = ch.children.clone();
                                 view! {
-                                    <th class="text-xs bg-gray-900">
+                                    <th class="text-xs bg-gray-900" colspan={ch.col_span}>
                                         <CustomHeader sort_order=ch.sort_order>
                                             {children()}
                                         </CustomHeader>
