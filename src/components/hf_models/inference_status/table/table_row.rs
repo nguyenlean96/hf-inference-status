@@ -24,86 +24,86 @@ pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
     };
 
     view! {
-        <tr>
+        <tr class="text-xs">
             <td>
-                <div class="flex flex-nowrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <img
-                            src={item.avatar_url.clone()}
-                            alt="Model Avatar"
-                            class="size-4 rounded-md"
-                        />
-                        <span class="block text-nowrap leading-none">
-                            {
-                                item.model_family.clone().map(|family| view! {
-                                    <span>{family}"/"</span>
-                                })
-                            }
-                            <span>
-                                {item.short_name}
-                            </span>
+                <div class="flex items-center gap-2">
+                    <img
+                        src={item.avatar_url.clone()}
+                        alt="Model Avatar"
+                        class="size-4 rounded-md"
+                    />
+                    <span class="block text-nowrap leading-none">
+                        {
+                            item.model_family.clone().map(|family| view! {
+                                <span>{family}"/"</span>
+                            })
+                        }
+                        <span>
+                            {item.short_name}
                         </span>
-                    </div>
-                    <div class="flex items-center flex-nowrap gap-1">
-                        <a
-                            href={item.model_details_url.clone()}
-                            target="_blank"
-                            class="block bg-[#888] rounded p-0.5"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="size-3">
-                                <path d="M7 7h10v10"/>
-                                <path d="M7 17 17 7"/>
-                            </svg>
-                        </a>
-                        <a
-                            href=item.model_inference_instruction_url.clone()
-                            target="_blank"
-                            class="block bg-[#888] rounded p-0.5"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#aaa"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="size-3">
-                                <path d="m16 18 6-6-6-6"/>
-                                <path d="m8 6-6 6 6 6"/>
-                            </svg>
-                        </a>
-                        <button
-                            class="block rounded p-0.5"
-                            on:click=toggle_favorite
-                            style:background-color=move || {
-                                format!("rgba(239, 177, 0, {})", if is_favorite.get() { 1.0 } else { 0.3 })
-                            }
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke=move || {
-                                    if is_favorite.get() {
-                                        "white"
-                                    } else {
-                                        "#aaa"
-                                    }
+                    </span>
+                </div>
+            </td>
+            <td>
+                <div class="flex items-center justify-end flex-nowrap gap-1">
+                    <a
+                        href={item.model_details_url.clone()}
+                        target="_blank"
+                        class="block bg-[#888] rounded p-0.5"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="size-3">
+                            <path d="M7 7h10v10"/>
+                            <path d="M7 17 17 7"/>
+                        </svg>
+                    </a>
+                    <a
+                        href=item.model_inference_instruction_url.clone()
+                        target="_blank"
+                        class="block bg-[#888] rounded p-0.5"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#aaa"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="size-3">
+                            <path d="m16 18 6-6-6-6"/>
+                            <path d="m8 6-6 6 6 6"/>
+                        </svg>
+                    </a>
+                    <button
+                        class="block rounded p-0.5"
+                        on:click=toggle_favorite
+                        style:background-color=move || {
+                            format!("rgba(239, 177, 0, {})", if is_favorite.get() { 1.0 } else { 0.3 })
+                        }
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke=move || {
+                                if is_favorite.get() {
+                                    "white"
+                                } else {
+                                    "#aaa"
                                 }
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="size-3">
-                                <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>
-                            </svg>
-                        </button>
-                    </div>
+                            }
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="size-3">
+                            <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>
+                        </svg>
+                    </button>
                 </div>
             </td>
             <td>
@@ -152,9 +152,10 @@ pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
             </td>
             <td class="text-center"
                 style:background-color=if item.tools_support {
-                    "rgba(124, 207, 0, 0.2)"
+                    "rgba(124, 207, 0, 0.15)"
                 } else {
-                    "rgba(194, 150, 83, 0.3)"
+                    // "rgba(194, 150, 83, 0.3)"
+                    "transparent"
                 }
             >
                 <Show when=move || { item.tools_support }
@@ -165,9 +166,10 @@ pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
             </td>
             <td class="text-center"
                 style:background-color=if item.structured_output_support {
-                    "rgba(124, 207, 0, 0.2)"
+                    "rgba(124, 207, 0, 0.15)"
                 } else {
-                    "rgba(194, 150, 83, 0.3)"
+                    // "rgba(194, 150, 83, 0.3)"
+                    "transparent"
                 }
             >
                 <Show when=move || { item.structured_output_support }
