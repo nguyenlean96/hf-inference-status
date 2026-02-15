@@ -1,5 +1,4 @@
 use core::fmt;
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -22,6 +21,25 @@ pub enum TableColumn {
 }
 
 impl TableColumn {
+    pub fn name(&self) -> &'static str {
+        match self {
+            TableColumn::Id => "ID",
+            TableColumn::OriginalOrder => "Original Order",
+            TableColumn::AvatarUrl => "Avatar Url",
+            TableColumn::ModelFamily => "Model Family",
+            TableColumn::ShortName => "Short Name",
+            TableColumn::ModelDetailsUrl => "Model Details Url",
+            TableColumn::ModelInferenceInstructionUrl => "Model Inference Instruction Url",
+            TableColumn::ProviderName => "Provider",
+            TableColumn::InputPricePer1m => "Input Price (per 1M tokens)",
+            TableColumn::OutputPricePer1m => "Output Price (per 1M tokens)",
+            TableColumn::ContextWindowSize => "Context Window (tokens)",
+            TableColumn::Latency => "Latency (seconds)",
+            TableColumn::ThroughputTokenPerSec => "Throughput (Token/second)",
+            TableColumn::ToolsSupport => "Tool calls",
+            TableColumn::StructuredOutputSupport => "Structured Output",
+        }
+    }
     pub fn as_str(&self) -> &'static str {
         match self {
             TableColumn::Id => "id",

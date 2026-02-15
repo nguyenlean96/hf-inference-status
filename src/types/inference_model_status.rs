@@ -5,7 +5,7 @@ pub struct InferenceModelStatusRowData {
     /// Hash of the composite ID
     pub id: String,
 
-    pub avatar_url: String,
+    pub avatar_url: Option<String>,
     pub model_family: Option<String>,
     pub short_name: String,
     pub model_details_url: String,
