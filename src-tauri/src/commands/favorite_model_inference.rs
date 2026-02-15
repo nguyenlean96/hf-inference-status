@@ -1,4 +1,5 @@
 use polars::prelude::*;
+use std::collections::HashMap;
 use tauri::{AppHandle, Manager};
 
 use crate::models::hf_model_inference::HFModelInferenceStatusRowData;
@@ -6,6 +7,7 @@ use crate::models::hf_model_inference::HFModelInferenceStatusRowData;
 use crate::modules::favorite_model_inference::service::FavoriteModelService;
 use crate::modules::inference_models::prelude::*;
 use crate::states::prelude::*;
+use crate::types::prelude::{SortOrder, TableColumn};
 
 // Take model inference (mi) id
 #[tauri::command]
@@ -57,6 +59,7 @@ pub async fn get_favorite_ids(app: AppHandle) -> Result<Vec<String>, String> {
 #[tauri::command]
 pub async fn get_favorite_model_inference_data(
     app: AppHandle,
+    sorted_by: HashMap<TableColumn, SortOrder>,
 ) -> Result<Vec<HFModelInferenceStatusRowData>, String> {
     let inference_model_state = app.state::<InferenceModelState>();
     let user_favorite_state = app.state::<UserFavoriteState>();
@@ -85,5 +88,30 @@ pub async fn get_favorite_model_inference_data(
         .filter(col("id").is_in(lit(targets).implode(), true))
         .collect()
         .map_err(|e| e.to_string())?;
-    Ok(InferenceModelStatusCollection::from(&filtered_df).data)
+
+    let sorted_df = filtered_df
+        .sort(
+            if !sorted_by.is_empty() {
+                sorted_by.keys().map(|k| k.as_str()).collect()
+            } else {
+                vec![
+                    TableColumn::ModelFamily.as_str(),
+                    TableColumn::ShortName.as_str(),
+                    TableColumn::ProviderName.as_str(),
+                ]
+            },
+            SortMultipleOptions::new()
+                .with_order_descending_multi(if !sorted_by.is_empty() {
+                    sorted_by
+                        .values()
+                        .map(|v| matches!(v, SortOrder::Descending))
+                        .collect()
+                } else {
+                    vec![false, false, false]
+                })
+                .with_nulls_last(true)
+                .with_maintain_order(true),
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(InferenceModelStatusCollection::from(&sorted_df).data)
 }

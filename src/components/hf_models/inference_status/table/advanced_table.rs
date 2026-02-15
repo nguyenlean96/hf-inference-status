@@ -1,13 +1,16 @@
 use leptos::prelude::*;
 
 use super::custom_header::CustomHeader;
-use super::types::SortOrder;
+use crate::types::prelude::TableColumn;
 
 #[slot]
-pub struct CustomHeader {
-    #[prop(default=SortOrder::Ascending)]
-    pub sort_order: SortOrder,
-    pub children: ChildrenFn,
+pub struct CustomHeaderSlot {
+    #[prop(default = 1)]
+    pub col_span: u32,
+    #[prop(optional)]
+    pub table_column: Option<TableColumn>,
+    #[prop(optional, into)]
+    pub alt_name: TextProp,
 }
 
 #[slot]
@@ -17,24 +20,25 @@ pub struct Tbody {
 
 #[component]
 pub fn AdvancedTable(
-    #[prop(default=vec![])] custom_headers_slot: Vec<CustomHeader>,
+    #[prop(default=vec![])] custom_headers_slot: Vec<CustomHeaderSlot>,
     tbody: Tbody,
 ) -> impl IntoView {
     view! {
         <div>
-            <table class="text-xs">
+            <table class="">
                 <thead>
                     <tr class="sticky top-0 z-2 bg-gray-950">
                         {
                             custom_headers_slot
                             .into_iter()
                             .map(|ch| {
-                                let children = ch.children.clone();
                                 view! {
-                                    <th class="text-xs bg-gray-900">
-                                        <CustomHeader sort_order=ch.sort_order>
-                                            {children()}
-                                        </CustomHeader>
+                                    <th class="text-xs bg-gray-900"
+                                        colspan={ch.col_span}>
+                                        <CustomHeader
+                                            alt_name=ch.alt_name
+                                            table_column=ch.table_column
+                                        />
                                     </th>
                                 }
                             })
