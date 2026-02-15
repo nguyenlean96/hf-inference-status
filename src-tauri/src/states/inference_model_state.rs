@@ -1,9 +1,12 @@
-use chrono::{Local, NaiveDateTime};
+use chrono::{Local, NaiveDateTime, TimeDelta};
 use polars::prelude::*;
 use tokio::sync::Mutex;
 
 use crate::models::hf_model_inference::HFModelInferenceStatusRowData;
-use crate::modules::inference_models::prelude::*;
+use crate::modules::inference_models::prelude::{
+    InferenceModelStatusCollection, html_table_to_df, select_html_data_table,
+    site_fetcher as fetch_data,
+};
 
 #[derive(Debug, Default)]
 pub struct InferenceModelStateInner {
@@ -36,7 +39,21 @@ impl InferenceModelStateInner {
             .cloned()
     }
 
+    fn is_stale(&self) -> bool {
+        if let Some(updated_at) = &self.updated_at {
+            let now_naive = Local::now().naive_local();
+            let diff = now_naive - *updated_at;
+            diff.abs() <= TimeDelta::seconds(30)
+        } else {
+            true
+        }
+    }
+
     pub async fn update(&mut self) {
+        if !self.is_stale() {
+            return;
+        }
+
         self.is_loading = true;
 
         if let Ok(response) = fetch_data().await

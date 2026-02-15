@@ -200,8 +200,11 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
         ids.push(blake3::hash(raw_ids[i].as_bytes()).to_hex().to_string());
     }
 
+    let original_order: Vec<u32> = (0..ids.len() as u32).collect();
+
     let df = df!(
         "id" => ids,
+        "original_order" => original_order,
         "avatar_url" => avatar_urls,
         "model_family" => model_families,
         "short_name" => short_names,

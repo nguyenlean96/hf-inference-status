@@ -46,7 +46,7 @@ impl From<HFModelInferenceStatusRowData> for HFModelInferenceStatus {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HFModelInferenceStatusRowData {
     pub id: String,
-    pub avatar_url: String,
+    pub avatar_url: Option<String>,
     pub model_family: Option<String>,
     pub short_name: String,
     pub model_details_url: String,

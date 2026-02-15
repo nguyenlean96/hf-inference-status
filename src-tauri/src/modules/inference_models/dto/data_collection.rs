@@ -2,6 +2,7 @@ use polars::frame::DataFrame;
 use serde::{Deserialize, Serialize};
 
 use crate::models::hf_model_inference::HFModelInferenceStatusRowData;
+use crate::modules::inference_models::{fetch::ApiResponse, prelude::MLModel};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct InferenceModelStatusCollection {
@@ -45,7 +46,7 @@ impl From<&DataFrame> for InferenceModelStatusCollection {
         for i in 0..len {
             results.push(HFModelInferenceStatusRowData {
                 id: ids.get(i).unwrap_or_default().to_string(),
-                avatar_url: avatar_urls.get(i).unwrap_or_default().to_string(),
+                avatar_url: Some(avatar_urls.get(i).unwrap_or_default().to_string()),
                 model_family: model_families.get(i).and_then(|s| {
                     if s.is_empty() {
                         None
@@ -71,5 +72,48 @@ impl From<&DataFrame> for InferenceModelStatusCollection {
         }
 
         Self { data: results }
+    }
+}
+
+impl From<ApiResponse<MLModel>> for InferenceModelStatusCollection {
+    fn from(api_response: ApiResponse<MLModel>) -> Self {
+        let mut data = Vec::new();
+
+        for i in 0..api_response.data.len() {
+            let ml_model = &api_response.data[i];
+            for provider in ml_model.providers.iter() {
+                let model_short_name = ml_model
+                    .id
+                    .to_string()
+                    .replace(format!("{}/", ml_model.owned_by).as_str(), "");
+                let model_id =
+                    blake3::hash(format!("{}:{}", ml_model.id, provider.provider).as_bytes())
+                        .to_hex()
+                        .to_string();
+                let model_details_url = format!("https://huggingface.co/{}", ml_model.id);
+                let model_inference_instruction_url = format!(
+                    "{}/?inference_api=true&infference_provider={}",
+                    model_details_url.clone(),
+                    provider.provider
+                );
+                data.push(HFModelInferenceStatusRowData {
+                    id: model_id,
+                    avatar_url: None,
+                    model_family: Some(ml_model.owned_by.clone()),
+                    short_name: model_short_name,
+                    model_details_url: model_details_url.clone(),
+                    model_inference_instruction_url,
+                    provider_name: provider.provider.clone(),
+                    input_price_per_1m: provider.pricing.as_ref().map(|p| p.input),
+                    output_price_per_1m: provider.pricing.as_ref().map(|p| p.output),
+                    context_window_size: provider.context_length,
+                    latency: None,
+                    throughput_token_per_sec: None,
+                    tools_support: provider.supports_tools,
+                    structured_output_support: provider.supports_structured_output,
+                });
+            }
+        }
+        Self { data }
     }
 }
