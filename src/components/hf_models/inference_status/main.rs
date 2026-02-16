@@ -21,6 +21,9 @@ pub fn ModelInferenceStatus() -> impl IntoView {
 
     let request_fetch_data = move |e: MouseEvent| {
         e.prevent_default();
+        if is_loading.get() {
+            return;
+        }
 
         spawn_local(async move {
             model_inference_state
@@ -52,6 +55,7 @@ pub fn ModelInferenceStatus() -> impl IntoView {
                         text-[#aaa] hover:text-white 
                         hover:bg-gray-900 \
                         border border-gray-800 rounded-lg"
+                        disabled=move || is_loading.get()
                         on:click=request_fetch_data
                     >
                         <svg xmlns="http://www.w3.org/2000/svg"
