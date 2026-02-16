@@ -67,9 +67,16 @@ impl fmt::Display for TableColumn {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum SortOrder {
     NotSet,
     Ascending,
     Descending,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum FilterColumn {
+    ProviderName(String),
+    ToolsSupport(bool),
+    StructuredOutputSupport(bool),
 }

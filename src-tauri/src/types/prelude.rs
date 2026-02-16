@@ -1,1 +1,1 @@
-pub use super::table_columns::{SortOrder, TableColumn};
+pub use super::table_columns::{FilterColumn, SortOrder, TableColumn};
