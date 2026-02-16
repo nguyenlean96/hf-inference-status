@@ -67,7 +67,9 @@ pub fn ModelInferenceStatusList() -> impl IntoView {
         });
 
     Effect::new(move |_| {
-        let _ = model_inference_state.sort_by_cols().get();
+        // To trigger fetcher when the sort and filter got updated
+        let _sort_update = model_inference_state.sort_by_cols().get();
+        let _filter_update = model_inference_state.filter_by_cols().get();
         if favorite_inference_service_state.show_favorite_only().get() {
             spawn_local(async move {
                 model_inference_state.get_data(true).await;

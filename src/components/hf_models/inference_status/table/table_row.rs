@@ -152,30 +152,30 @@ pub fn TableRow(item: InferenceModelStatusRowData) -> impl IntoView {
             </td>
             <td class="text-center"
                 style:background-color=if item.tools_support {
-                    "rgba(124, 207, 0, 0.15)"
+                    "rgba(124, 207, 0, 0.1)"
                 } else {
                     // "rgba(194, 150, 83, 0.3)"
                     "transparent"
                 }
             >
                 <Show when=move || { item.tools_support }
-                    fallback=|| view! { <span class="text-red-500">"✘"</span> }
+                    fallback=|| view! { <span class="text-red-500">"✗"</span> }
                 >
-                    <span class="text-lime-500">"✔"</span>
+                    <span class="text-lime-400">"✔"</span>
                 </Show>
             </td>
             <td class="text-center"
                 style:background-color=if item.structured_output_support {
-                    "rgba(124, 207, 0, 0.15)"
+                    "rgba(124, 207, 0, 0.1)"
                 } else {
                     // "rgba(194, 150, 83, 0.3)"
                     "transparent"
                 }
             >
                 <Show when=move || { item.structured_output_support }
-                    fallback=|| view! { <span class="text-red-500">"✘"</span> }
+                    fallback=|| view! { <span class="text-red-500">"✗"</span> }
                 >
-                    <span class="text-lime-500">"✔"</span>
+                    <span class="text-lime-400">"✔"</span>
                 </Show>
             </td>
         </tr>

@@ -149,18 +149,16 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
                 short_name_text
             },
         );
-        model_details_urls.push(
-            model_details_url_el
-                .attr("href")
-                .unwrap_or_default()
-                .to_string(),
-        );
-        model_inference_instruction_urls.push(
+        model_details_urls.push(format!(
+            "https://huggingface.co{}",
+            model_details_url_el.attr("href").unwrap_or_default()
+        ));
+        model_inference_instruction_urls.push(format!(
+            "https://huggingface.co{}",
             model_provider_instruction_url_el
                 .attr("href")
                 .unwrap_or_default()
-                .to_string(),
-        );
+        ));
         provider_names.push(
             inference_provider_name_el
                 .text()

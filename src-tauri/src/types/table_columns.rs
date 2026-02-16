@@ -55,3 +55,10 @@ pub enum SortOrder {
     Ascending,
     Descending,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum FilterColumn {
+    ProviderName(String),
+    ToolsSupport(bool),
+    StructuredOutputSupport(bool),
+}

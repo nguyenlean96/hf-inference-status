@@ -1,11 +1,18 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use leptos::{logging, prelude::*};
 use reactive_stores::Store;
-use serde_json::json;
+use serde::{Deserialize, Serialize};
 
-use crate::types::prelude::{InferenceModelStatusRowData, SortOrder, TableColumn};
+use crate::types::prelude::{FilterColumn, InferenceModelStatusRowData, SortOrder, TableColumn};
 use crate::utils::tauri_invoke::tauri_invoke;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct GetDataProps {
+    filtered_by: Vec<FilterColumn>,
+    sorted_by: HashMap<TableColumn, SortOrder>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InitStatus {
@@ -18,8 +25,10 @@ pub enum InitStatus {
 #[derive(Clone, Store)]
 pub struct ModelInferenceServiceState {
     pub initialized: InitStatus,
+    pub filter_by_cols: Vec<FilterColumn>,
     pub sort_by_cols: HashMap<TableColumn, SortOrder>,
     pub group_by_col: Option<TableColumn>,
+    pub providers: Vec<String>,
     pub data: Vec<InferenceModelStatusRowData>,
 }
 
@@ -27,8 +36,10 @@ impl ModelInferenceServiceState {
     pub fn new() -> Self {
         Self {
             initialized: InitStatus::NotInitialized,
+            filter_by_cols: Vec::new(),
             sort_by_cols: HashMap::new(),
             group_by_col: None,
+            providers: Vec::new(),
             data: Vec::new(),
         }
     }
@@ -44,6 +55,8 @@ pub trait ModelInferenceServiceStateExt {
     fn is_loading(&self) -> bool;
     fn is_initialized(&self) -> bool;
     fn has_error(&self) -> Option<String>;
+    fn clear_filter_by_col(&self, col: TableColumn);
+    fn toggle_col_filter_value(&self, col: TableColumn, value: Option<FilterColumn>);
     fn toggle_col_sort_order(&self, col: TableColumn);
     async fn get_data(&self, favorites_only: bool);
 }
@@ -80,6 +93,64 @@ impl ModelInferenceServiceStateExt for Store<ModelInferenceServiceState> {
         });
     }
 
+    fn clear_filter_by_col(&self, col: TableColumn) {
+        self.filter_by_cols().update(|curr| match col {
+            TableColumn::StructuredOutputSupport => {
+                curr.retain(|f| !matches!(f, FilterColumn::StructuredOutputSupport(_)));
+            }
+            TableColumn::ToolsSupport => {
+                curr.retain(|f| !matches!(f, FilterColumn::ToolsSupport(_)));
+            }
+            TableColumn::ProviderName => {
+                curr.retain(|f| !matches!(f, FilterColumn::ProviderName(_)));
+            }
+            _ => {}
+        });
+    }
+
+    fn toggle_col_filter_value(&self, col: TableColumn, value: Option<FilterColumn>) {
+        self.filter_by_cols().update(|curr| {
+            match (col, value) {
+                (TableColumn::ToolsSupport, None) => {
+                    if let Some(idx) = curr
+                        .iter()
+                        .position(|f| matches!(f, FilterColumn::ToolsSupport(_)))
+                    {
+                        if let FilterColumn::ToolsSupport(true) = curr[idx] {
+                            curr[idx] = FilterColumn::ToolsSupport(false);
+                        } else {
+                            curr.remove(idx);
+                        }
+                    } else {
+                        curr.push(FilterColumn::ToolsSupport(true));
+                    }
+                }
+                (TableColumn::StructuredOutputSupport, None) => {
+                    if let Some(idx) = curr
+                        .iter()
+                        .position(|f| matches!(f, FilterColumn::StructuredOutputSupport(_)))
+                    {
+                        if let FilterColumn::StructuredOutputSupport(true) = curr[idx] {
+                            curr[idx] = FilterColumn::StructuredOutputSupport(false);
+                        } else {
+                            curr.remove(idx);
+                        }
+                    } else {
+                        curr.push(FilterColumn::StructuredOutputSupport(true));
+                    }
+                }
+                (TableColumn::ProviderName, Some(val)) => {
+                    if let Some(idx) = curr.iter().position(|f| f == &val) {
+                        curr.remove(idx);
+                    } else {
+                        curr.push(val);
+                    }
+                }
+                _ => {}
+            };
+        });
+    }
+
     async fn get_data(&self, favorites_only: bool) {
         if self.initialized().get() == InitStatus::Loading {
             return;
@@ -92,13 +163,25 @@ impl ModelInferenceServiceStateExt for Store<ModelInferenceServiceState> {
             } else {
                 "get_data"
             },
-            json!({
-                "sortedBy": self.sort_by_cols().get()
-            }),
+            GetDataProps {
+                filtered_by: self.filter_by_cols().get(),
+                sorted_by: self.sort_by_cols().get(),
+            },
         )
         .await
         {
             Ok(data) => {
+                if self.providers().get().is_empty() {
+                    let mut providers = HashSet::<String>::new();
+
+                    for model in &data {
+                        providers.insert(model.provider_name.clone());
+                    }
+                    let mut sorted_providers = providers.into_iter().collect::<Vec<String>>();
+                    sorted_providers.sort();
+                    self.providers().set(sorted_providers);
+                }
+
                 self.data().set(data);
                 self.initialized().set(InitStatus::Initialized);
             }

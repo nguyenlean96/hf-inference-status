@@ -1,6 +1,10 @@
 <div align="center">
 
-# 🤖 Hugging Face Inference Status Tracker
+<p align="center">
+  <img src="src-tauri/icons/icon.png" alt="App Icon" width="128">
+</p>
+
+# Hugging Face Inference Status Tracker
 
 **Monitor and compare Hugging Face inference services in real-time**
 
@@ -101,7 +105,7 @@ cargo tauri dev
 
 <div align="center">
 
-```
+```text
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Communication  │    │    Backend      │
 │                 │    │                  │    │                 │
@@ -109,7 +113,7 @@ cargo tauri dev
 │  • Tailwind CSS │    │  • IPC           │    │  • Polars       │
 │  • WASM         │    │                  │    │  • Reqwest      │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
-         ▲                       ▲                       ▲
+         ▲                       ▲                        ▲
          │              ┌────────┴────────┐               │
          └──────────────│   Data Flow     │───────────────┘
                         │                 │
