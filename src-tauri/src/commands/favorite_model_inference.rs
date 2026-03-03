@@ -6,6 +6,7 @@ use crate::models::hf_model_inference::HFModelInferenceStatusRowData;
 
 use crate::modules::favorite_model_inference::service::FavoriteModelService;
 use crate::modules::inference_models::prelude::*;
+use crate::states::inference_model_state::Queryable;
 use crate::states::prelude::*;
 use crate::types::prelude::{FilterColumn, SortOrder, TableColumn};
 
@@ -17,7 +18,6 @@ pub async fn add_favorite(app: AppHandle, model_inference_id: String) -> Result<
     let inference_model_state_lock = inference_model_state.lock().await;
     let mut user_favorite_state_lock = user_favorite_state.lock().await;
 
-    println!("Adding favorite for id: {}", model_inference_id);
     let Some(model) =
         inference_model_state_lock.get_model_inference_service_by_id(&model_inference_id)
     else {
@@ -59,8 +59,8 @@ pub async fn get_favorite_ids(app: AppHandle) -> Result<Vec<String>, String> {
 #[tauri::command]
 pub async fn get_favorite_model_inference_data(
     app: AppHandle,
-    filtered_by: Vec<FilterColumn>,
-    sorted_by: HashMap<TableColumn, SortOrder>,
+    mut filtered_by: Vec<FilterColumn>,
+    sorted_by: Vec<(TableColumn, SortOrder)>,
 ) -> Result<Vec<HFModelInferenceStatusRowData>, String> {
     let inference_model_state = app.state::<InferenceModelState>();
     let user_favorite_state = app.state::<UserFavoriteState>();
@@ -80,67 +80,9 @@ pub async fn get_favorite_model_inference_data(
         inference_model_state_lock.update().await;
     }
 
-    let df = inference_model_state_lock
-        .data
-        .as_ref()
-        .ok_or("Data not found")?;
-
-    let targets = Series::new("targets".into(), user_favorite_state_lock.fav_ids.clone());
-
-    let mut lf = df.clone().lazy();
-    lf = lf.filter(col("id").is_in(lit(targets).implode(), true));
-
-    let mut filter_providers: Vec<String> = Vec::new();
-    // 1. Apply filters first (Performance: Reduces dataset size before sorting)
-    for filter_col in filtered_by {
-        let predicate = match filter_col {
-            FilterColumn::ToolsSupport(enabled) => {
-                Some(col(TableColumn::ToolsSupport.as_str()).eq(lit(enabled)))
-            }
-            FilterColumn::StructuredOutputSupport(enabled) => {
-                Some(col(TableColumn::StructuredOutputSupport.as_str()).eq(lit(enabled)))
-            }
-            FilterColumn::ProviderName(provider) => {
-                filter_providers.push(provider);
-                None
-            }
-            _ => None,
-        };
-        if let Some(p) = predicate {
-            lf = lf.filter(p);
-        }
+    for id in user_favorite_state_lock.fav_ids.clone() {
+        filtered_by.push(FilterColumn::Id(id));
     }
 
-    if !filter_providers.is_empty() {
-        let targets = Series::new("targets".into(), filter_providers);
-        lf = lf.filter(col(TableColumn::ProviderName.as_str()).is_in(lit(targets).implode(), true));
-    }
-
-    // 2. Apply Sorting
-    lf = lf.sort(
-        if !sorted_by.is_empty() {
-            sorted_by.keys().map(|k| k.as_str()).collect()
-        } else {
-            vec![
-                TableColumn::ModelFamily.as_str(),
-                TableColumn::ShortName.as_str(),
-                TableColumn::ProviderName.as_str(),
-            ]
-        },
-        SortMultipleOptions::new()
-            .with_order_descending_multi(if !sorted_by.is_empty() {
-                sorted_by
-                    .values()
-                    .map(|v| matches!(v, SortOrder::Descending))
-                    .collect()
-            } else {
-                vec![false, false, false]
-            })
-            .with_nulls_last(true)
-            .with_maintain_order(true),
-    );
-    let result_df = lf.collect().map_err(|e| e.to_string())?;
-
-    let response = InferenceModelStatusCollection::from(&result_df);
-    Ok(response.data)
+    inference_model_state_lock.query(&filtered_by, &sorted_by)
 }

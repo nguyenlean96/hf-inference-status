@@ -1,7 +1,7 @@
 use anyhow::Result;
 use polars::prelude::*;
 use scraper::{Html, Selector};
-use std::sync::LazyLock;
+use std::{collections::HashMap, sync::LazyLock};
 
 use super::prelude::*;
 
@@ -50,6 +50,7 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
     let table_rows = table_html.select(&sel.row);
 
     let data_size = table_rows.clone().count();
+    let mut model_avatar_urls = HashMap::<String, String>::new();
 
     let mut avatar_urls: Vec<String> = Vec::with_capacity(data_size);
     let mut model_families: Vec<Option<String>> = Vec::with_capacity(data_size);
@@ -109,12 +110,8 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
             continue;
         };
 
-        avatar_urls.push(
-            model_avatar_url_el
-                .attr("src")
-                .unwrap_or_default()
-                .to_string(),
-        );
+        let model_avatar_url_href = model_avatar_url_el.attr("src").unwrap_or_default();
+        avatar_urls.push(model_avatar_url_href.to_string());
         let long_name_text = model_long_name_el
             .text()
             .collect::<Vec<_>>()
@@ -127,12 +124,16 @@ pub fn html_table_to_df(table_str: String) -> Result<DataFrame> {
             .join(" ")
             .trim()
             .to_string();
+
         // Split long_name using the slash "/" where:
         // - Has 2 parts: first part is model_family, second part is the name
         // - Has 1 part: model_family is None, name is the only part
         let name_parts: Vec<&str> = long_name_text.splitn(2, '/').map(|s| s.trim()).collect();
         if name_parts.len() == 2 {
             model_families.push(Some(name_parts[0].to_string()));
+            model_avatar_urls
+                .entry(name_parts[0].to_string())
+                .or_insert(model_avatar_url_href.to_string());
         } else {
             model_families.push(None);
         }

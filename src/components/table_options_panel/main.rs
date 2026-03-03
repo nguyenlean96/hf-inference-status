@@ -3,7 +3,7 @@ use leptos::prelude::*;
 use reactive_stores::Store;
 
 use crate::components::table_options_panel::custom_button::{
-    CustomButton, SortButton, ToggleButton, ToggleProvider,
+    CustomButton, SortButton, ToggleButton, ToggleColumn,
 };
 use crate::states::prelude::*;
 use crate::types::prelude::{FilterColumn, SortOrder, TableColumn};
@@ -40,6 +40,14 @@ pub fn TableOptionsPanel() -> impl IntoView {
             .toggle_col_filter_value(col, Some(FilterColumn::ProviderName(provider_name)));
     };
 
+    let handle_toggle_model_family = move |col: TableColumn, family_name: String| {
+        if is_loading.get() {
+            return;
+        }
+        model_inference_state
+            .toggle_col_filter_value(col, Some(FilterColumn::ModelFamily(family_name)));
+    };
+
     let handle_toggle_bool = move |col: TableColumn| {
         if is_loading.get() {
             return;
@@ -52,8 +60,20 @@ pub fn TableOptionsPanel() -> impl IntoView {
         model_inference_state.clear_filter_by_col(TableColumn::StructuredOutputSupport);
     };
 
+    let clear_model_family_filter = move || {
+        model_inference_state.clear_filter_by_col(TableColumn::ModelFamily);
+    };
+
     let clear_provider_filter = move || {
         model_inference_state.clear_filter_by_col(TableColumn::ProviderName);
+    };
+
+    let handle_clear_model_family_filter = move |e: MouseEvent| {
+        e.prevent_default();
+        if is_loading.get() {
+            return;
+        }
+        clear_model_family_filter();
     };
 
     let handle_clear_provider_filter = move |e: MouseEvent| {
@@ -78,6 +98,7 @@ pub fn TableOptionsPanel() -> impl IntoView {
 
         clear_bool_filter();
         clear_sorted_cols();
+        clear_model_family_filter();
         clear_provider_filter();
     };
 
@@ -213,7 +234,7 @@ pub fn TableOptionsPanel() -> impl IntoView {
                                     let provider = StoredValue::new(p);
                                     view! {
                                         <li>
-                                            <ToggleProvider
+                                            <ToggleColumn
                                                 name=provider.get_value()
                                                 active=move || filter_cols.get().iter().any(|f| *f == FilterColumn::ProviderName(provider.get_value()))
                                                 on_click=handle_toggle_provider
@@ -234,6 +255,45 @@ pub fn TableOptionsPanel() -> impl IntoView {
                                 on:click=handle_clear_provider_filter
                             >
                                 <span class="block text-xs">"Clear provider filter"</span>
+                            </button>
+                        </Show>
+
+                        <div class="border-b border-[#888] p-1">
+                            <h3 class="text-xs text-[#aaa] font-semibold">
+                                "Select Model Family"
+                            </h3>
+                        </div>
+                        <ul class="space-y-1">
+                            <For
+                                each=move || model_inference_state.model_families().get()
+                                key=|i| i.clone()
+                                let(mf)
+                            >
+                                {
+                                    let m_family = StoredValue::new(mf);
+                                    view! {
+                                        <li>
+                                            <ToggleColumn
+                                                name=m_family.get_value()
+                                                active=move || filter_cols.get().iter().any(|f| *f == FilterColumn::ModelFamily(m_family.get_value()))
+                                                on_click=handle_toggle_model_family
+                                            />
+                                        </li>
+                                    }
+                                }
+                            </For>
+                        </ul>
+                        <Show when=move || filter_cols.get().iter().any(|f| matches!(f, FilterColumn::ModelFamily(_)))>
+                            <button
+                                class="p-1.5 gap-0.5 \
+                                text-gray-200 hover:text-gray-50 \
+                                flex items-center justify-center \
+                                bg-gray-900 hover:bg-yellow-700 \
+                                rounded-lg border \
+                                border-gray-800 hover:border-red-800"
+                                on:click=handle_clear_model_family_filter
+                            >
+                                <span class="block text-xs">"Clear model family filter"</span>
                             </button>
                         </Show>
 

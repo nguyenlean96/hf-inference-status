@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use crate::types::prelude::{SortOrder, TableColumn};
 
 #[component]
-pub fn ToggleProvider<F>(
+pub fn ToggleColumn<F>(
     #[prop(optional, into)] class_name: TextProp,
     #[prop(into)] name: TextProp,
     #[prop(optional, into, default = Signal::from(false))] active: Signal<bool>,

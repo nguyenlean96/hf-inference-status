@@ -58,6 +58,8 @@ pub enum SortOrder {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FilterColumn {
+    Id(String),
+    ModelFamily(String),
     ProviderName(String),
     ToolsSupport(bool),
     StructuredOutputSupport(bool),

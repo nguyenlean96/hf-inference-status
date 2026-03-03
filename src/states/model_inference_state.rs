@@ -11,7 +11,7 @@ use crate::utils::tauri_invoke::tauri_invoke;
 #[serde(rename_all = "camelCase")]
 struct GetDataProps {
     filtered_by: Vec<FilterColumn>,
-    sorted_by: HashMap<TableColumn, SortOrder>,
+    sorted_by: Vec<(TableColumn, SortOrder)>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -28,6 +28,7 @@ pub struct ModelInferenceServiceState {
     pub filter_by_cols: Vec<FilterColumn>,
     pub sort_by_cols: HashMap<TableColumn, SortOrder>,
     pub group_by_col: Option<TableColumn>,
+    pub model_families: Vec<String>,
     pub providers: Vec<String>,
     pub data: Vec<InferenceModelStatusRowData>,
 }
@@ -39,6 +40,7 @@ impl ModelInferenceServiceState {
             filter_by_cols: Vec::new(),
             sort_by_cols: HashMap::new(),
             group_by_col: None,
+            model_families: Vec::new(),
             providers: Vec::new(),
             data: Vec::new(),
         }
@@ -101,6 +103,9 @@ impl ModelInferenceServiceStateExt for Store<ModelInferenceServiceState> {
             TableColumn::ToolsSupport => {
                 curr.retain(|f| !matches!(f, FilterColumn::ToolsSupport(_)));
             }
+            TableColumn::ModelFamily => {
+                curr.retain(|f| !matches!(f, FilterColumn::ModelFamily(_)));
+            }
             TableColumn::ProviderName => {
                 curr.retain(|f| !matches!(f, FilterColumn::ProviderName(_)));
             }
@@ -139,7 +144,8 @@ impl ModelInferenceServiceStateExt for Store<ModelInferenceServiceState> {
                         curr.push(FilterColumn::StructuredOutputSupport(true));
                     }
                 }
-                (TableColumn::ProviderName, Some(val)) => {
+                (TableColumn::ProviderName, Some(val)) | (TableColumn::ModelFamily, Some(val)) => {
+                    logging::debug_log!("toggle {:#?}", val);
                     if let Some(idx) = curr.iter().position(|f| f == &val) {
                         curr.remove(idx);
                     } else {
@@ -165,21 +171,39 @@ impl ModelInferenceServiceStateExt for Store<ModelInferenceServiceState> {
             },
             GetDataProps {
                 filtered_by: self.filter_by_cols().get(),
-                sorted_by: self.sort_by_cols().get(),
+                sorted_by: self.sort_by_cols().get().into_iter().collect::<Vec<_>>(),
             },
         )
         .await
         {
             Ok(data) => {
-                if self.providers().get().is_empty() {
+                let is_model_fams_empty = self.model_families().get().is_empty();
+                let is_providers_empty = self.providers().get().is_empty();
+                if is_model_fams_empty || is_providers_empty {
+                    let mut model_families = HashSet::<String>::new();
                     let mut providers = HashSet::<String>::new();
 
                     for model in &data {
+                        if let Some(model_fam) = model.model_family.clone()
+                            && !model_fam.is_empty()
+                        {
+                            model_families.insert(model_fam);
+                        }
                         providers.insert(model.provider_name.clone());
                     }
-                    let mut sorted_providers = providers.into_iter().collect::<Vec<String>>();
-                    sorted_providers.sort();
-                    self.providers().set(sorted_providers);
+
+                    if is_providers_empty {
+                        let mut sorted_providers = providers.into_iter().collect::<Vec<String>>();
+                        sorted_providers.sort();
+                        self.providers().set(sorted_providers);
+                    }
+
+                    if is_model_fams_empty {
+                        let mut sorted_model_fams =
+                            model_families.into_iter().collect::<Vec<String>>();
+                        sorted_model_fams.sort();
+                        self.model_families().set(sorted_model_fams);
+                    }
                 }
 
                 self.data().set(data);
