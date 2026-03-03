@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    hg_inference_status_lib::run()
+    hf_inference_status_lib::run()
 }
