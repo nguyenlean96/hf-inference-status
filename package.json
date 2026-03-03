@@ -1,5 +1,5 @@
 {
-  "name": "hg-inference-status",
+  "name": "hf-inference-status",
   "version": "1.0.0",
   "description": "This template should help get you started developing with Tauri and Leptos.",
   "main": "index.js",
@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nguyenlean96/hg-inference-status.git"
+    "url": "git+https://github.com/nguyenlean96/hf-inference-status.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nguyenlean96/hg-inference-status/issues"
+    "url": "https://github.com/nguyenlean96/hf-inference-status/issues"
   },
-  "homepage": "https://github.com/nguyenlean96/hg-inference-status#readme",
+  "homepage": "https://github.com/nguyenlean96/hf-inference-status#readme",
   "dependencies": {
     "@tailwindcss/cli": "^4.1.18",
     "tailwindcss": "^4.1.18"

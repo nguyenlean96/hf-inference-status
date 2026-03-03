@@ -44,16 +44,16 @@
 
 Download the latest release for your platform:
 
-- [macOS](https://github.com/nguyenlean96/hg-inference-status/releases/latest/download/hg-inference-status_x64.dmg)
-- [Windows](https://github.com/nguyenlean96/hg-inference-status/releases/latest/download/hg-inference-status_x64.msi)
-- [Linux](https://github.com/nguyenlean96/hg-inference-status/releases/latest/download/hg-inference-status_aarch64.AppImage)
+- [macOS](https://github.com/nguyenlean96/hf-inference-status/releases/latest/download/hf-inference-status_x64.dmg)
+- [Windows](https://github.com/nguyenlean96/hf-inference-status/releases/latest/download/hf-inference-status_x64.msi)
+- [Linux](https://github.com/nguyenlean96/hf-inference-status/releases/latest/download/hf-inference-status_aarch64.AppImage)
 
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/nguyenlean96/hg-inference-status.git
-cd hg-inference-status
+git clone https://github.com/nguyenlean96/hf-inference-status.git
+cd hf-inference-status
 
 # Install dependencies
 npm install
@@ -86,8 +86,8 @@ cargo tauri dev
 
 3. **Clone and setup the project**:
    ```bash
-   git clone https://github.com/nguyenlean96/hg-inference-status.git
-   cd hg-inference-status
+   git clone https://github.com/nguyenlean96/hf-inference-status.git
+   cd hf-inference-status
    npm install
    ```
 
@@ -170,7 +170,7 @@ We welcome contributions from the community! Here's how you can help:
 ### Project Structure
 
 ```
-hg-inference-status/
+hf-inference-status/
 ├── src/                    # Frontend code (Leptos components)
 ├── src-tauri/             # Backend code (Tauri application)
 │   ├── src/               # Rust backend modules
@@ -183,7 +183,7 @@ hg-inference-status/
 
 ## 🐛 Issues
 
-If you encounter any issues or have feature requests, please [create an issue](https://github.com/nguyenlean96/hg-inference-status/issues) on GitHub. When reporting bugs, please include:
+If you encounter any issues or have feature requests, please [create an issue](https://github.com/nguyenlean96/hf-inference-status/issues) on GitHub. When reporting bugs, please include:
 
 - Your operating system and version
 - Steps to reproduce the issue
